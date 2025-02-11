@@ -1,11 +1,41 @@
 @startuml
+
+skinparam packageStyle rectangle
+skinparam componentStyle uml2
+
 package "pokemon-battle" {
     package "pkg" {
         package "battle" {
             package "domain" {
-                class Battle
-                class Pokemon
-                class Move
+                class Battle {
+                    + ID: string
+                    + Pokemon1: *Pokemon
+                    + Pokemon2: *Pokemon
+                    + Status: BattleStatus
+                    + NewBattle()
+                    + ExecuteMove()
+                }
+                
+                class Pokemon {
+                    + ID: string
+                    + CurrentHP: int
+                    + MaxHP: int
+                    + Speed: int
+                    + Status: string
+                    + Moves: []Move
+                }
+                
+                class Move {
+                    + ID: string
+                    + Power: int
+                    + Accuracy: int
+                    + Priority: int
+                }
+
+                enum BattleStatus {
+                    + ONGOING
+                    + FINISHED
+                }
             }
             
             package "ports" {
@@ -14,37 +44,54 @@ package "pokemon-battle" {
                     + ExecuteMove()
                     + GetBattleStatus()
                 }
+
+                class BattleStatus {
+                    + BattleID: string
+                    + Pokemon1: PokemonStatus
+                    + Pokemon2: PokemonStatus
+                    + IsFinished: bool
+                    + Winner: *string
+                }
+
+                class PokemonStatus {
+                    + PokemonID: string
+                    + CurrentHP: int
+                    + MaxHP: int
+                    + Status: string
+                }
             }
             
             package "service" {
-                class BattleService
+                class BattleService {
+                    - battles: map[string]*Battle
+                    - moves: map[string]*Move
+                    + RegisterBattle()
+                    + RegisterMove()
+                    + ExecuteTurn()
+                    + ExecuteMove()
+                    + GetBattleStatus()
+                }
             }
-        }
-    }
-    
-    package "internal" {
-        package "application.service" {
-            class OldBattleService
-            class PokemonService
-        }
-        
-        package "domain.model" {
-            class OldBattle
-            class OldMove
-            class OldPokemon
         }
     }
     
     package "cmd" {
-        class main
-        class visualize
+        class Main {
+            + determineTurnOrder()
+            + main()
+        }
     }
 }
 
 ' 依存関係
 BattleService ..|> BattlePort : implements
 BattleService --> Battle : uses
+BattleService --> Move : manages
 Battle --> Pokemon : contains
 Battle --> Move : uses
+Main --> BattleService : uses
+Main --> Battle : creates
+Main --> Pokemon : creates
+Main --> Move : creates
 
 @enduml 

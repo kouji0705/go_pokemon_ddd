@@ -6,18 +6,8 @@ import (
 	"log"
 	"time"
 
-	"pokemon-battle/pkg/battle/domain"
 	"pokemon-battle/pkg/battle/service"
 )
-
-// determineTurnOrder は素早さに基づいて行動順序を決定します
-func determineTurnOrder(p1, p2 *domain.Pokemon, m1, m2 *domain.Move) (firstPokemon, secondPokemon *domain.Pokemon, firstMove, secondMove *domain.Move) {
-	// 素早さが同じ場合はp1が先攻（実際には乱数を使用するべき）
-	if p1.Speed >= p2.Speed {
-		return p1, p2, m1, m2
-	}
-	return p2, p1, m2, m1
-}
 
 func main() {
 	ctx := context.Background()
@@ -26,83 +16,56 @@ func main() {
 	battleService := service.NewBattleService()
 
 	// ポケモンの作成
-	pikachu := &domain.Pokemon{
-		ID:        "pikachu-1",
-		CurrentHP: 100,
-		MaxHP:     100,
-		Speed:     90,
-		Status:    "NORMAL",
+	if err := battleService.CreatePokemon(ctx, "pikachu-1", 100, 90); err != nil {
+		log.Fatal(err)
 	}
-
-	bulbasaur := &domain.Pokemon{
-		ID:        "bulbasaur-1",
-		CurrentHP: 100,
-		MaxHP:     100,
-		Speed:     45,
-		Status:    "NORMAL",
+	if err := battleService.CreatePokemon(ctx, "bulbasaur-1", 100, 45); err != nil {
+		log.Fatal(err)
 	}
 
 	// 技の作成
-	thunder := &domain.Move{
-		ID:       "thunder-1",
-		Power:    90,
-		Accuracy: 100,
-		Priority: 0,
-	}
-
-	tackle := &domain.Move{
-		ID:       "tackle-1",
-		Power:    40,
-		Accuracy: 100,
-		Priority: 0,
-	}
-
-	// 技の登録
-	if err := battleService.RegisterMove(thunder); err != nil {
+	if err := battleService.CreateMove(ctx, "thunder-1", 90, 100, 0); err != nil {
 		log.Fatal(err)
 	}
-	if err := battleService.RegisterMove(tackle); err != nil {
+	if err := battleService.CreateMove(ctx, "tackle-1", 40, 100, 0); err != nil {
 		log.Fatal(err)
 	}
 
 	// バトルの作成
-	battle, err := domain.NewBattle("battle-1", pikachu, bulbasaur)
-	if err != nil {
+	if err := battleService.CreateBattle(ctx, "battle-1", "pikachu-1", "bulbasaur-1"); err != nil {
 		log.Fatal(err)
 	}
 
-	// バトルの登録
-	if err := battleService.RegisterBattle(battle); err != nil {
+	// 初期状態の取得
+	status, err := battleService.GetBattleStatus(ctx, "battle-1")
+	if err != nil {
 		log.Fatal(err)
 	}
 
 	// バトル開始
 	fmt.Println("バトル開始！")
-	fmt.Printf("ピカチュウ (HP: %d/素早さ: %d) VS フシギダネ (HP: %d/素早さ: %d)\n",
-		pikachu.CurrentHP, pikachu.Speed,
-		bulbasaur.CurrentHP, bulbasaur.Speed)
+	fmt.Printf("ピカチュウ (HP: %d) VS フシギダネ (HP: %d)\n",
+		status.Pokemon1.CurrentHP,
+		status.Pokemon2.CurrentHP)
 	fmt.Println("-------------------")
 
 	turn := 1
-	for battle.Status != domain.BattleStatusFinished {
+	for !status.IsFinished {
 		fmt.Printf("\nターン%d\n", turn)
 		fmt.Println("-------------------")
 
-		// 行動順序の決定
-		firstPokemon, secondPokemon, firstMove, secondMove := determineTurnOrder(pikachu, bulbasaur, thunder, tackle)
-
-		// ターンの実行
-		if err := battleService.ExecuteMove(ctx, battle.ID, firstPokemon.ID, secondPokemon.ID, firstMove.ID); err != nil {
+		// 1番目のポケモンの行動
+		if err := battleService.ExecuteMove(ctx, "battle-1", status.Pokemon1.PokemonID, status.Pokemon2.PokemonID, "thunder-1"); err != nil {
 			log.Fatal(err)
 		}
 
 		// 状態の取得と表示
-		status, err := battleService.GetBattleStatus(ctx, battle.ID)
+		status, err = battleService.GetBattleStatus(ctx, "battle-1")
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("1. %sの%sの攻撃！\n", firstPokemon.ID, firstMove.ID)
+		fmt.Printf("1. ピカチュウのかみなり！\n")
 		fmt.Printf("   ピカチュウの残りHP: %d\n", status.Pokemon1.CurrentHP)
 		fmt.Printf("   フシギダネの残りHP: %d\n", status.Pokemon2.CurrentHP)
 
@@ -110,16 +73,16 @@ func main() {
 
 		// 2番目のポケモンの行動（1番目の攻撃で倒れていない場合）
 		if !status.IsFinished {
-			if err := battleService.ExecuteMove(ctx, battle.ID, secondPokemon.ID, firstPokemon.ID, secondMove.ID); err != nil {
+			if err := battleService.ExecuteMove(ctx, "battle-1", status.Pokemon2.PokemonID, status.Pokemon1.PokemonID, "tackle-1"); err != nil {
 				log.Fatal(err)
 			}
 
-			status, err = battleService.GetBattleStatus(ctx, battle.ID)
+			status, err = battleService.GetBattleStatus(ctx, "battle-1")
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			fmt.Printf("2. %sの%sの攻撃！\n", secondPokemon.ID, secondMove.ID)
+			fmt.Printf("2. フシギダネのたいあたり！\n")
 			fmt.Printf("   ピカチュウの残りHP: %d\n", status.Pokemon1.CurrentHP)
 			fmt.Printf("   フシギダネの残りHP: %d\n", status.Pokemon2.CurrentHP)
 		}
@@ -128,16 +91,10 @@ func main() {
 		time.Sleep(time.Second) // ターン間の待機時間
 	}
 
-	// 最終状態の取得
-	finalStatus, err := battleService.GetBattleStatus(ctx, battle.ID)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	// 勝敗の判定と表示
 	fmt.Println("\n-------------------")
-	if finalStatus.Winner != nil {
-		if *finalStatus.Winner == pikachu.ID {
+	if status.Winner != nil {
+		if *status.Winner == "pikachu-1" {
 			fmt.Println("ピカチュウの勝利！")
 		} else {
 			fmt.Println("フシギダネの勝利！")

@@ -10,39 +10,74 @@ import (
 
 // BattleService はバトルサービスの実装です
 type BattleService struct {
-	battles map[string]*domain.Battle
-	moves   map[string]*domain.Move // 技の情報を保持
+	battles  map[string]*domain.Battle
+	moves    map[string]*domain.Move
+	pokemons map[string]*domain.Pokemon
 }
 
 // NewBattleService は新しいバトルサービスを作成します
 func NewBattleService() *BattleService {
 	return &BattleService{
-		battles: make(map[string]*domain.Battle),
-		moves:   make(map[string]*domain.Move),
+		battles:  make(map[string]*domain.Battle),
+		moves:    make(map[string]*domain.Move),
+		pokemons: make(map[string]*domain.Pokemon),
 	}
 }
 
-// RegisterBattle はバトルを登録します
-func (s *BattleService) RegisterBattle(battle *domain.Battle) error {
-	if battle == nil {
-		return errors.New("battle cannot be nil")
+// CreatePokemon はポケモンを作成します
+func (s *BattleService) CreatePokemon(ctx context.Context, id string, maxHP int, speed int) error {
+	if _, exists := s.pokemons[id]; exists {
+		return errors.New("pokemon already exists")
 	}
-	if _, exists := s.battles[battle.ID]; exists {
-		return errors.New("battle already exists")
+
+	pokemon := &domain.Pokemon{
+		ID:        id,
+		CurrentHP: maxHP,
+		MaxHP:     maxHP,
+		Speed:     speed,
+		Status:    "NORMAL",
+		Moves:     []domain.Move{},
 	}
-	s.battles[battle.ID] = battle
+
+	s.pokemons[id] = pokemon
 	return nil
 }
 
-// RegisterMove は技を登録します
-func (s *BattleService) RegisterMove(move *domain.Move) error {
-	if move == nil {
-		return errors.New("move cannot be nil")
-	}
-	if _, exists := s.moves[move.ID]; exists {
+// CreateMove は技を作成します
+func (s *BattleService) CreateMove(ctx context.Context, id string, power int, accuracy int, priority int) error {
+	if _, exists := s.moves[id]; exists {
 		return errors.New("move already exists")
 	}
-	s.moves[move.ID] = move
+
+	move := &domain.Move{
+		ID:       id,
+		Power:    power,
+		Accuracy: accuracy,
+		Priority: priority,
+	}
+
+	s.moves[id] = move
+	return nil
+}
+
+// CreateBattle はバトルを作成します
+func (s *BattleService) CreateBattle(ctx context.Context, id string, pokemon1ID, pokemon2ID string) error {
+	pokemon1, exists := s.pokemons[pokemon1ID]
+	if !exists {
+		return errors.New("pokemon1 not found")
+	}
+
+	pokemon2, exists := s.pokemons[pokemon2ID]
+	if !exists {
+		return errors.New("pokemon2 not found")
+	}
+
+	battle, err := domain.NewBattle(id, pokemon1, pokemon2)
+	if err != nil {
+		return err
+	}
+
+	s.battles[id] = battle
 	return nil
 }
 

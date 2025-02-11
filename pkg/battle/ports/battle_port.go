@@ -6,13 +6,14 @@ import (
 
 // BattlePort はバトルドメインの公開インターフェースを定義します
 type BattlePort interface {
-	// ExecuteTurn は1ターンのバトルを実行します
+	// ファクトリーメソッド
+	CreateBattle(ctx context.Context, id string, pokemon1ID, pokemon2ID string) error
+	CreatePokemon(ctx context.Context, id string, maxHP int, speed int) error
+	CreateMove(ctx context.Context, id string, power int, accuracy int, priority int) error
+
+	// バトル操作
 	ExecuteTurn(ctx context.Context, battleID string, move1ID string, move2ID string) error
-
-	// ExecuteMove は1回の攻撃を実行します
 	ExecuteMove(ctx context.Context, battleID string, attackerID string, defenderID string, moveID string) error
-
-	// GetBattleStatus はバトルの現在の状態を取得します
 	GetBattleStatus(ctx context.Context, battleID string) (*BattleStatus, error)
 }
 
