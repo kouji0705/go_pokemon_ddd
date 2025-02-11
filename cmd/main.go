@@ -69,6 +69,10 @@ func main() {
 	for !pikachu.IsFainted() && !bulbasaur.IsFainted() {
 		fmt.Printf("\nターン%d\n", turn)
 
+		// 技の表示
+		fmt.Printf("%s の %s！\n", pikachu.Name(), thunder.Name())
+		fmt.Printf("%s の %s！\n", bulbasaur.Name(), tackle.Name())
+
 		// ターンの実行
 		if err := battleService.ExecuteTurn(thunder, tackle); err != nil {
 			log.Fatal(err)
