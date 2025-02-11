@@ -5,6 +5,7 @@ import (
 	"log"
 	"pokemon-battle/application/service"
 	"pokemon-battle/domain/model"
+	"time"
 )
 
 // createPokemon はポケモンを作成し、技を覚えさせます
@@ -57,12 +58,35 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// ターンの実行
-	if err := battleService.ExecuteTurn(thunder, tackle); err != nil {
-		log.Fatal(err)
+	// バトル開始
+	fmt.Println("バトル開始！")
+	fmt.Printf("%s (HP: %d) VS %s (HP: %d)\n",
+		pikachu.Name(), pikachu.CurrentHP(),
+		bulbasaur.Name(), bulbasaur.CurrentHP())
+	fmt.Println("-------------------")
+
+	turn := 1
+	for !pikachu.IsFainted() && !bulbasaur.IsFainted() {
+		fmt.Printf("\nターン%d\n", turn)
+
+		// ターンの実行
+		if err := battleService.ExecuteTurn(thunder, tackle); err != nil {
+			log.Fatal(err)
+		}
+
+		// 結果の表示
+		fmt.Printf("%s の残りHP: %d\n", pikachu.Name(), pikachu.CurrentHP())
+		fmt.Printf("%s の残りHP: %d\n", bulbasaur.Name(), bulbasaur.CurrentHP())
+
+		turn++
+		time.Sleep(time.Second) // バトルの進行を見やすくするため1秒待機
 	}
 
-	// 結果の表示
-	fmt.Printf("%sの残りHP: %d\n", pikachu.Name(), pikachu.CurrentHP())
-	fmt.Printf("%sの残りHP: %d\n", bulbasaur.Name(), bulbasaur.CurrentHP())
+	// 勝敗の判定
+	fmt.Println("\n-------------------")
+	if pikachu.IsFainted() {
+		fmt.Printf("%sの勝利！\n", bulbasaur.Name())
+	} else {
+		fmt.Printf("%sの勝利！\n", pikachu.Name())
+	}
 }
