@@ -11,12 +11,14 @@ import (
 // BattleService はバトルサービスの実装です
 type BattleService struct {
 	battles map[string]*domain.Battle
+	moves   map[string]*domain.Move // 技の情報を保持
 }
 
 // NewBattleService は新しいバトルサービスを作成します
 func NewBattleService() *BattleService {
 	return &BattleService{
 		battles: make(map[string]*domain.Battle),
+		moves:   make(map[string]*domain.Move),
 	}
 }
 
@@ -32,6 +34,18 @@ func (s *BattleService) RegisterBattle(battle *domain.Battle) error {
 	return nil
 }
 
+// RegisterMove は技を登録します
+func (s *BattleService) RegisterMove(move *domain.Move) error {
+	if move == nil {
+		return errors.New("move cannot be nil")
+	}
+	if _, exists := s.moves[move.ID]; exists {
+		return errors.New("move already exists")
+	}
+	s.moves[move.ID] = move
+	return nil
+}
+
 // ExecuteTurn は1ターンのバトルを実行します
 func (s *BattleService) ExecuteTurn(ctx context.Context, battleID string, move1ID string, move2ID string) error {
 	battle, exists := s.battles[battleID]
@@ -39,9 +53,15 @@ func (s *BattleService) ExecuteTurn(ctx context.Context, battleID string, move1I
 		return errors.New("battle not found")
 	}
 
-	// 技の優先度に基づいて実行順序を決定
-	move1 := &domain.Move{ID: move1ID} // 実際には技の詳細情報を取得する必要があります
-	move2 := &domain.Move{ID: move2ID}
+	// 技の取得
+	move1, exists := s.moves[move1ID]
+	if !exists {
+		return errors.New("move1 not found")
+	}
+	move2, exists := s.moves[move2ID]
+	if !exists {
+		return errors.New("move2 not found")
+	}
 
 	// 技の実行
 	if err := battle.ExecuteMove(battle.Pokemon1, battle.Pokemon2, move1); err != nil {
@@ -77,8 +97,11 @@ func (s *BattleService) ExecuteMove(ctx context.Context, battleID string, attack
 		return errors.New("attacker not found in battle")
 	}
 
-	// 技の取得（実際には技のリポジトリなどから取得する必要があります）
-	move := &domain.Move{ID: moveID}
+	// 技の取得
+	move, exists := s.moves[moveID]
+	if !exists {
+		return errors.New("move not found")
+	}
 
 	return battle.ExecuteMove(attacker, defender, move)
 }

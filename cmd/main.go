@@ -57,6 +57,14 @@ func main() {
 		Priority: 0,
 	}
 
+	// 技の登録
+	if err := battleService.RegisterMove(thunder); err != nil {
+		log.Fatal(err)
+	}
+	if err := battleService.RegisterMove(tackle); err != nil {
+		log.Fatal(err)
+	}
+
 	// バトルの作成
 	battle, err := domain.NewBattle("battle-1", pikachu, bulbasaur)
 	if err != nil {
@@ -94,7 +102,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("1. %sの攻撃！\n", firstPokemon.ID)
+		fmt.Printf("1. %sの%sの攻撃！\n", firstPokemon.ID, firstMove.ID)
 		fmt.Printf("   ピカチュウの残りHP: %d\n", status.Pokemon1.CurrentHP)
 		fmt.Printf("   フシギダネの残りHP: %d\n", status.Pokemon2.CurrentHP)
 
@@ -111,7 +119,7 @@ func main() {
 				log.Fatal(err)
 			}
 
-			fmt.Printf("2. %sの攻撃！\n", secondPokemon.ID)
+			fmt.Printf("2. %sの%sの攻撃！\n", secondPokemon.ID, secondMove.ID)
 			fmt.Printf("   ピカチュウの残りHP: %d\n", status.Pokemon1.CurrentHP)
 			fmt.Printf("   フシギダネの残りHP: %d\n", status.Pokemon2.CurrentHP)
 		}
