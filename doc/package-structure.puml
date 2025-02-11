@@ -1,0 +1,50 @@
+@startuml
+package "pokemon-battle" {
+    package "pkg" {
+        package "battle" {
+            package "domain" {
+                class Battle
+                class Pokemon
+                class Move
+            }
+            
+            package "ports" {
+                interface BattlePort {
+                    + ExecuteTurn()
+                    + ExecuteMove()
+                    + GetBattleStatus()
+                }
+            }
+            
+            package "service" {
+                class BattleService
+            }
+        }
+    }
+    
+    package "internal" {
+        package "application.service" {
+            class OldBattleService
+            class PokemonService
+        }
+        
+        package "domain.model" {
+            class OldBattle
+            class OldMove
+            class OldPokemon
+        }
+    }
+    
+    package "cmd" {
+        class main
+        class visualize
+    }
+}
+
+' 依存関係
+BattleService ..|> BattlePort : implements
+BattleService --> Battle : uses
+Battle --> Pokemon : contains
+Battle --> Move : uses
+
+@enduml 
