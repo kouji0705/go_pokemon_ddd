@@ -31,11 +31,12 @@ func main() {
 	}
 
 	// 技をポケモンに覚えさせる
-	if err := pikachu.AddMove(*thunder); err != nil {
-		log.Fatal(err)
+	if !pikachu.AddMove(thunder) {
+		log.Fatal("ピカチュウに技を覚えさせることができませんでした")
 	}
-	if err := bulbasaur.AddMove(*tackle); err != nil {
-		log.Fatal(err)
+
+	if !bulbasaur.AddMove(tackle) {
+		log.Fatal("フシギダネに技を覚えさせることができませんでした")
 	}
 
 	// バトルサービスの作成
@@ -45,7 +46,7 @@ func main() {
 	}
 
 	// ターンの実行
-	if err := battleService.ExecuteTurn(*thunder, *tackle); err != nil {
+	if err := battleService.ExecuteTurn(thunder, tackle); err != nil {
 		log.Fatal(err)
 	}
 

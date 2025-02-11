@@ -1,14 +1,19 @@
+// Package model はポケモンバトルのドメインモデルを提供します。
 package model
 
-import "errors"
+import (
+	"errors"
+)
 
+// Move はポケモンの技を表す構造体です
 type Move struct {
-	name     string
-	power    int
-	accuracy int
+	name     string // 技の名前
+	power    int    // 技の威力
+	accuracy int    // 技の命中率
 }
 
-func NewMove(name string, power, accuracy int) (*Move, error) {
+// NewMove は新しいMoveインスタンスを生成します
+func NewMove(name string, power int, accuracy int) (*Move, error) {
 	if name == "" {
 		return nil, errors.New("技の名前は必須です")
 	}
@@ -26,14 +31,17 @@ func NewMove(name string, power, accuracy int) (*Move, error) {
 	}, nil
 }
 
+// Name は技の名前を返します
 func (m *Move) Name() string {
 	return m.name
 }
 
+// Power は技の威力を返します
 func (m *Move) Power() int {
 	return m.power
 }
 
+// Accuracy は技の命中率を返します
 func (m *Move) Accuracy() int {
 	return m.accuracy
 }
