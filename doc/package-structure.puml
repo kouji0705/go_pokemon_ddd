@@ -1,0 +1,108 @@
+@startuml
+
+skinparam packageStyle rectangle
+skinparam componentStyle uml2
+skinparam linetype ortho
+
+package "pokemon-battle" {
+    package "cmd" {
+        class Main {
+            + main()
+        }
+    }
+
+    package "pkg" {
+        package "battle" {
+            package "domain" {
+                class Battle {
+                    + ID: string
+                    + Pokemon1: *Pokemon
+                    + Pokemon2: *Pokemon
+                    + Status: BattleStatus
+                    + NewBattle()
+                    + ExecuteMove()
+                }
+                
+                class Pokemon {
+                    + ID: string
+                    + CurrentHP: int
+                    + MaxHP: int
+                    + Speed: int
+                    + Status: string
+                    + Moves: []Move
+                }
+                
+                class Move {
+                    + ID: string
+                    + Power: int
+                    + Accuracy: int
+                    + Priority: int
+                }
+
+                enum BattleStatus {
+                    + ONGOING
+                    + FINISHED
+                }
+            }
+            
+            package "ports" {
+                interface BattlePort {
+                    + CreateBattle()
+                    + CreatePokemon()
+                    + CreateMove()
+                    + ExecuteTurn()
+                    + ExecuteMove()
+                    + GetBattleStatus()
+                }
+
+                class BattleStatus {
+                    + BattleID: string
+                    + Pokemon1: PokemonStatus
+                    + Pokemon2: PokemonStatus
+                    + IsFinished: bool
+                    + Winner: *string
+                }
+
+                class PokemonStatus {
+                    + PokemonID: string
+                    + CurrentHP: int
+                    + MaxHP: int
+                    + Status: string
+                }
+            }
+            
+            package "service" {
+                class BattleService {
+                    - battles: map[string]*Battle
+                    - moves: map[string]*Move
+                    - pokemons: map[string]*Pokemon
+                    + CreateBattle()
+                    + CreatePokemon()
+                    + CreateMove()
+                    + ExecuteTurn()
+                    + ExecuteMove()
+                    + GetBattleStatus()
+                }
+            }
+        }
+    }
+}
+
+' 依存関係
+Main --> BattlePort : uses
+BattleService ..|> BattlePort : implements
+BattleService --> Battle : manages
+BattleService --> Pokemon : manages
+BattleService --> Move : manages
+Battle --> Pokemon : contains
+Battle --> Move : uses
+Battle --> BattleStatus : uses
+
+' レイヤー間の依存方向
+note "依存の方向" as N1
+note "外層 → 内層" as N2
+Main ..> service
+service ..> ports
+service ..> domain
+
+@enduml 
