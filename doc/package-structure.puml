@@ -2,8 +2,15 @@
 
 skinparam packageStyle rectangle
 skinparam componentStyle uml2
+skinparam linetype ortho
 
 package "pokemon-battle" {
+    package "cmd" {
+        class Main {
+            + main()
+        }
+    }
+
     package "pkg" {
         package "battle" {
             package "domain" {
@@ -40,6 +47,9 @@ package "pokemon-battle" {
             
             package "ports" {
                 interface BattlePort {
+                    + CreateBattle()
+                    + CreatePokemon()
+                    + CreateMove()
                     + ExecuteTurn()
                     + ExecuteMove()
                     + GetBattleStatus()
@@ -65,8 +75,10 @@ package "pokemon-battle" {
                 class BattleService {
                     - battles: map[string]*Battle
                     - moves: map[string]*Move
-                    + RegisterBattle()
-                    + RegisterMove()
+                    - pokemons: map[string]*Pokemon
+                    + CreateBattle()
+                    + CreatePokemon()
+                    + CreateMove()
                     + ExecuteTurn()
                     + ExecuteMove()
                     + GetBattleStatus()
@@ -74,24 +86,23 @@ package "pokemon-battle" {
             }
         }
     }
-    
-    package "cmd" {
-        class Main {
-            + determineTurnOrder()
-            + main()
-        }
-    }
 }
 
 ' 依存関係
+Main --> BattlePort : uses
 BattleService ..|> BattlePort : implements
-BattleService --> Battle : uses
+BattleService --> Battle : manages
+BattleService --> Pokemon : manages
 BattleService --> Move : manages
 Battle --> Pokemon : contains
 Battle --> Move : uses
-Main --> BattleService : uses
-Main --> Battle : creates
-Main --> Pokemon : creates
-Main --> Move : creates
+Battle --> BattleStatus : uses
+
+' レイヤー間の依存方向
+note "依存の方向" as N1
+note "外層 → 内層" as N2
+Main ..> service
+service ..> ports
+service ..> domain
 
 @enduml 
