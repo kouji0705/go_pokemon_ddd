@@ -1,8 +1,6 @@
 package service
 
-import (
-	"pokemon-battle/domain/model"
-)
+import "pokemon-battle/internal/domain/model"
 
 type BattleService struct {
 	battle *model.BattleEngine

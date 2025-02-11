@@ -2,7 +2,7 @@ package service
 
 import (
 	"fmt"
-	"pokemon-battle/domain/model"
+	"pokemon-battle/internal/domain/model"
 )
 
 // PokemonService はポケモンの生成と管理を担当します

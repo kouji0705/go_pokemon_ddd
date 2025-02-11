@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
-	"pokemon-battle/application/service"
-	"pokemon-battle/domain/model"
+	"pokemon-battle/internal/application/service"
+	"pokemon-battle/internal/domain/model"
 	"time"
 )
 
