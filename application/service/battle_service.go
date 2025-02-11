@@ -19,3 +19,9 @@ func (s *BattleService) ExecuteTurn(move1, move2 *model.Move) error {
 	s.battle.BattleTurn(move1, move2)
 	return nil
 }
+
+// ExecuteMove は1回の攻撃を実行します
+func (s *BattleService) ExecuteMove(attacker, defender *model.Pokemon, move *model.Move) error {
+	s.battle.ExecuteMove(attacker, defender, move)
+	return nil
+}
