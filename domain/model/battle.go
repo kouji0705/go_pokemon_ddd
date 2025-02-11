@@ -59,4 +59,4 @@ func (b *BattleEngine) BattleTurn(move1, move2 Move) error {
 	}
 
 	return nil
-} 
+}
